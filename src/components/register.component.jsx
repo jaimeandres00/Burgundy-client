@@ -92,6 +92,8 @@ class Register extends Component {
     this.onChangeEmail = this.onChangeEmail.bind(this);
     this.onChangePassword = this.onChangePassword.bind(this);
 
+    const user = AuthService.getCurrentUser();
+
     this.state = {
       name: "",
       lastname: "",
@@ -101,9 +103,18 @@ class Register extends Component {
       gender: "",
       password: "",
       loading: false,
-      successful: false,
       message: "",
     };
+
+    if (user) {
+      this.state = {
+        successful: true,
+      };
+    } else {
+      this.state = {
+        successful: false,
+      };
+    }
   }
 
   onChangeName(e) {
@@ -318,6 +329,7 @@ class Register extends Component {
 
                 <div className="form-group">
                   <button
+                    type="submit"
                     className="btn btn-burgundy"
                     disabled={this.state.loading}
                   >

@@ -24,7 +24,7 @@ class ServiceService {
   }
 
   getServices(order, sortBy, limit) {
-    query = API_URL + "list";
+    var query = API_URL + "list";
 
     if (order || sortBy || limit) {
       query += "?";
@@ -58,7 +58,7 @@ class ServiceService {
   }
 
   searchServices(category, search) {
-    query = API_URL + "search";
+    var query = API_URL + "search";
 
     if (category || search) {
       query += "?";

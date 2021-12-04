@@ -26,7 +26,7 @@ class UserService {
   }
 
   searchUsers(role, search) {
-    query = API_URL + "search";
+    var query = API_URL + "search";
 
     if (role || search) {
       query += "?";
