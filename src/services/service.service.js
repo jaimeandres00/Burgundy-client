@@ -5,16 +5,7 @@ const API_URL = "https://burgundy-web-app.herokuapp.com/api/service/";
 
 class ServiceService {
   createService(service) {
-    let serviceForm = new FormData();
-
-    serviceForm.append("title", service.title);
-    serviceForm.append("description", service.description);
-    serviceForm.append("price", service.price);
-    serviceForm.append("category", service.category);
-    serviceForm.append("user", service.user);
-    serviceForm.append("image", service.image);
-
-    return axios.post(API_URL + "create", serviceForm, {
+    return axios.post(API_URL + "create", service, {
       headers: authHeader(),
     });
   }
@@ -80,17 +71,7 @@ class ServiceService {
   }
 
   updateService(service) {
-    let serviceForm = new FormData();
-
-    if (service.title) serviceForm.append("title", service.title);
-    if (service.description)
-      serviceForm.append("description", service.description);
-    if (service.price) serviceForm.append("price", service.price);
-    if (service.category) serviceForm.append("category", service.category);
-    if (service.user) serviceForm.append("user", service.user);
-    if (service.image) serviceForm.append("image", service.image);
-
-    return axios.put(API_URL + `update/${service.id}`, serviceForm, {
+    return axios.put(API_URL + `update/${service.id}`, service, {
       headers: authHeader(),
     });
   }

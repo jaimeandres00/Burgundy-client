@@ -94,69 +94,103 @@ class Register extends Component {
 
     const user = AuthService.getCurrentUser();
 
-    this.state = {
-      name: "",
-      lastname: "",
-      phone: "",
-      birthdate: "",
-      email: "",
-      gender: "",
-      password: "",
-      loading: false,
-      message: "",
-    };
-
     if (user) {
       this.state = {
         successful: true,
       };
     } else {
       this.state = {
+        user: {
+          name: "",
+          lastname: "",
+          phone: "",
+          birthdate: "",
+          gender: "",
+          email: "",
+          password: "",
+        },
+        loading: false,
+        message: "",
         successful: false,
       };
     }
   }
 
   onChangeName(e) {
-    this.setState({
-      name: e.target.value,
-    });
+    const name = e.target.value;
+
+    this.setState((prevState) => ({
+      user: {
+        ...prevState.user,
+        name: name,
+      },
+    }));
   }
 
   onChangeLastName(e) {
-    this.setState({
-      lastname: e.target.value,
-    });
+    const lastname = e.target.value;
+
+    this.setState((prevState) => ({
+      user: {
+        ...prevState.user,
+        lastname: lastname,
+      },
+    }));
   }
 
   onChangePhone(e) {
-    this.setState({
-      phone: e.target.value,
-    });
+    const phone = e.target.value;
+
+    this.setState((prevState) => ({
+      user: {
+        ...prevState.user,
+        phone: phone,
+      },
+    }));
   }
 
   onChangeBirthdate(e) {
-    this.setState({
-      birthdate: e.target.value,
-    });
+    const birthdate = e.target.value;
+
+    this.setState((prevState) => ({
+      user: {
+        ...prevState.user,
+        birthdate: birthdate,
+      },
+    }));
   }
 
   onChangeGender(e) {
-    this.setState({
-      gender: e.target.value,
-    });
+    const gender = e.target.value;
+
+    this.setState((prevState) => ({
+      user: {
+        ...prevState.user,
+        gender: gender,
+      },
+    }));
   }
 
   onChangeEmail(e) {
-    this.setState({
-      email: e.target.value,
-    });
+    const email = e.target.value;
+
+    this.setState((prevState) => ({
+      user: {
+        ...prevState.user,
+        email: email,
+      },
+    }));
   }
 
   onChangePassword(e) {
-    this.setState({
-      password: e.target.value,
-    });
+    const password = e.target.value;
+
+    this.setState((prevState) => ({
+      user: {
+        ...prevState.user,
+        password: password,
+      },
+    }));
   }
 
   handleRegister(e) {
@@ -170,15 +204,7 @@ class Register extends Component {
     this.form.validateAll();
 
     if (this.checkBtn.context._errors.length === 0) {
-      const user = {
-        name: this.state.name,
-        lastname: this.state.lastname,
-        phone: this.state.phone,
-        birthdate: this.state.birthdate,
-        gender: this.state.gender,
-        email: this.state.email,
-        password: this.state.password,
-      };
+      const user = this.state.user;
 
       AuthService.register(user).then(
         () => {
@@ -208,7 +234,7 @@ class Register extends Component {
   }
 
   render() {
-    const { successful } = this.state;
+    const { successful, user } = this.state;
 
     if (successful) {
       return <Navigate to={{ pathname: "/" }} />;
@@ -236,7 +262,7 @@ class Register extends Component {
                       className="form-control"
                       name="name"
                       placeholder="Nombre"
-                      value={this.state.name}
+                      value={user.name}
                       onChange={this.onChangeName}
                       validations={[required, vname]}
                     />
@@ -248,7 +274,7 @@ class Register extends Component {
                       className="form-control"
                       name="lastname"
                       placeholder="Apellido"
-                      value={this.state.lastname}
+                      value={user.lastname}
                       onChange={this.onChangeLastName}
                       validations={[required, vlastname]}
                     />
@@ -261,7 +287,7 @@ class Register extends Component {
                     className="form-control"
                     name="phone"
                     placeholder="Número de celular"
-                    value={this.state.phone}
+                    value={user.phone}
                     onChange={this.onChangePhone}
                     validations={[required, vphone]}
                   />
@@ -275,7 +301,7 @@ class Register extends Component {
                     type="date"
                     className="form-control"
                     name="birthdate"
-                    value={this.state.birthdate}
+                    value={user.birthdate}
                     onChange={this.onChangeBirthdate}
                     validations={[required, vbirthdate]}
                   />
@@ -301,7 +327,7 @@ class Register extends Component {
                     className="form-control"
                     name="email"
                     placeholder="Correo electrónico"
-                    value={this.state.email}
+                    value={user.email}
                     onChange={this.onChangeEmail}
                     validations={[required, email]}
                   />
@@ -313,7 +339,7 @@ class Register extends Component {
                     className="form-control"
                     name="password"
                     placeholder="Contraseña"
-                    value={this.state.password}
+                    value={user.password}
                     onChange={this.onChangePassword}
                     validations={[required, vpassword]}
                   />

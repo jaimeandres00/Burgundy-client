@@ -32,17 +32,11 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.handleLogin = this.handleLogin.bind(this);
+
     this.onChangeEmail = this.onChangeEmail.bind(this);
     this.onChangePassword = this.onChangePassword.bind(this);
 
     const user = AuthService.getCurrentUser();
-
-    this.state = {
-      email: "",
-      password: "",
-      loading: false,
-      message: "",
-    };
 
     if (user) {
       this.state = {
@@ -50,6 +44,10 @@ class Login extends Component {
       };
     } else {
       this.state = {
+        email: "",
+        password: "",
+        loading: false,
+        message: "",
         successful: false,
       };
     }
@@ -162,7 +160,7 @@ class Login extends Component {
                     <span>Iniciar sesión</span>
                   </button>
                 </div>
-                
+
                 {this.state.message && (
                   <div className="form-group">
                     <div className="alert alert-danger" role="alert">

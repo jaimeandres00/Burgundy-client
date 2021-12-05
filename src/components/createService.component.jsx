@@ -32,7 +32,7 @@ const vtitle = (value) => {
 };
 
 const vdescription = (value) => {
-  if (value.length < 10 || value.length > 50) {
+  if (value.length < 10 || value.length > 150) {
     return (
       <div className="alert alert-danger" role="alert">
         Ingrese entre 10 y 150 caracteres en la descripción del servicio.
@@ -54,7 +54,9 @@ const vprice = (value) => {
 class CreateService extends Component {
   constructor(props) {
     super(props);
-    this.handleRegister = this.handleCreateService.bind(this);
+
+    this.handleCreateService = this.handleCreateService.bind(this);
+    this.retrieveCategories = this.retrieveCategories.bind(this);
 
     this.onChangeTitle = this.onChangeTitle.bind(this);
     this.onChangeDescription = this.onChangeDescription.bind(this);
@@ -64,69 +66,98 @@ class CreateService extends Component {
 
     const user = AuthService.getCurrentUser();
 
-    this.state = {
-      title: "",
-      description: "",
-      price: "",
-      category: "",
-      categories: [],
-      user: undefined,
-      image: "",
-      loading: false,
-      successful: false,
-      message: "",
-    };
-
     if (!user || user.role === 0) {
       this.state = {
         redirect: true,
       };
     } else {
       this.state = {
+        service: {
+          title: "",
+          description: "",
+          price: 0,
+          category: "",
+          user: user.id,
+          image: null,
+        },
+        categories: [],
+        loading: false,
+        successful: false,
         redirect: false,
+        message: "",
       };
-
-      const categories = CategoryService.getCategories()
-        .then((response) => {
-          this.state = {
-            categories: response.data,
-          };
-          console.log(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
     }
   }
 
+  componentDidMount() {
+    this.retrieveCategories();
+  }
+
   onChangeTitle(e) {
-    this.setState({
-      title: e.target.value,
-    });
+    const title = e.target.value;
+    
+    this.setState((prevState) => ({
+      service: {
+        ...prevState.service,
+        title: title
+      }
+    }));
   }
 
   onChangeDescription(e) {
-    this.setState({
-      description: e.target.value,
-    });
+    const description = e.target.value;
+    
+    this.setState((prevState) => ({
+      service: {
+        ...prevState.service,
+        description: description
+      }
+    }));
   }
 
   onChangePrice(e) {
-    this.setState({
-      price: e.target.value,
-    });
+    const price = e.target.value;
+    
+    this.setState((prevState) => ({
+      service: {
+        ...prevState.service,
+        price: price
+      }
+    }));
   }
 
   onChangeCategory(e) {
-    this.setState({
-      category: e.target.value,
-    });
+    const category = e.target.value;
+    
+    this.setState((prevState) => ({
+      service: {
+        ...prevState.service,
+        category: category
+      }
+    }));
   }
 
   onChangeImage(e) {
-    this.setState({
-      image: e.target.files,
-    });
+    const image = e.target.files[0];
+    
+    this.setState((prevState) => ({
+      service: {
+        ...prevState.service,
+        image: image
+      }
+    }));
+  }
+
+  retrieveCategories() {
+    CategoryService.getCategories()
+      .then((response) => {
+        this.setState({
+          categories: response.data,
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   }
 
   handleCreateService(e) {
@@ -140,14 +171,14 @@ class CreateService extends Component {
     this.form.validateAll();
 
     if (this.checkBtn.context._errors.length === 0) {
-      const service = {
-        title: this.state.title,
-        description: this.state.description,
-        price: this.state.price,
-        category: this.state.category,
-        user: this.state.user,
-        image: this.state.image,
-      };
+      let service = new FormData();
+
+      service.append("title", this.state.service.title);
+      service.append("description", this.state.service.description);
+      service.append("price", this.state.service.price);
+      service.append("category", this.state.service.category);
+      service.append("user", this.state.service.user);
+      service.append("image", this.state.service.image);
 
       ServicesService.createService(service).then(
         () => {
@@ -177,7 +208,7 @@ class CreateService extends Component {
   }
 
   render() {
-    const { successful, redirect, categories } = this.state;
+    const { successful, redirect, service, categories } = this.state;
 
     if (successful) {
       return <Navigate to={{ pathname: "/" }} />;
@@ -196,7 +227,7 @@ class CreateService extends Component {
           <div className="row bg-white align-items-stretch p-5">
             <div className="col-12">
               <Form
-                onSubmit={this.handleLogin}
+                onSubmit={this.handleCreateService}
                 ref={(c) => {
                   this.form = c;
                 }}
@@ -207,7 +238,7 @@ class CreateService extends Component {
                     className="form-control"
                     name="title"
                     placeholder="Nombre del servicio"
-                    value={this.state.title}
+                    value={service.title}
                     onChange={this.onChangeTitle}
                     validations={[required, vtitle]}
                   />
@@ -219,7 +250,7 @@ class CreateService extends Component {
                     className="form-control"
                     name="description"
                     placeholder="Descripción del servicio"
-                    value={this.state.description}
+                    value={service.description}
                     onChange={this.onChangeDescription}
                     rows="3"
                     validations={[required, vdescription]}
@@ -232,7 +263,7 @@ class CreateService extends Component {
                     className="form-control"
                     name="price"
                     placeholder="Precio del servicio"
-                    value={this.state.price}
+                    value={service.price}
                     onChange={this.onChangePrice}
                     validations={[required, vprice]}
                   />
@@ -246,19 +277,20 @@ class CreateService extends Component {
                     validations={[required]}
                   >
                     <option selected>Categoría del servicio</option>
-                    {/*categories.map(category => (
+                    {categories.map((category) => (
                       <option value={category._id}>{category.name}</option>
-                    ))*/}          
+                    ))}
                   </Select>
                 </div>
 
                 <div className="mb-3">
+                  <label htmlFor="image" className="form-label">
+                    Selecciona la imagen del servicio
+                  </label>
                   <Input
                     type="file"
                     className="form-control"
                     name="image"
-                    placeholder="Selecciona la imagen del servicio"
-                    value={this.state.image}
                     onChange={this.onChangeImage}
                     validations={[required]}
                   />
