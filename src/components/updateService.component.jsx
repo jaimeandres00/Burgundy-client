@@ -130,14 +130,14 @@ const UpdateService = (props) => {
   const retrieveService = (userId) => {
     ServicesService.getService(params.id)
       .then((response) => {
-        if (response.data.user !== userId && !isAdmin) {
-          navigate("/");
-        } else {
+        if (isAdmin || response.data.user == userId) {
           setId(response.data._id);
           setTitle(response.data.title);
           setDescription(response.data.description);
           setPrice(response.data.price);
           setCategory(response.data.category);
+        } else {
+          navigate("/");
         }
       })
       .catch((e) => {
