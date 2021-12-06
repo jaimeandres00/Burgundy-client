@@ -130,7 +130,7 @@ const UpdateService = (props) => {
   const retrieveService = (userId) => {
     ServicesService.getService(params.id)
       .then((response) => {
-        if (response.data.user !== userId) {
+        if (response.data.user !== userId && !isAdmin) {
           navigate("/");
         } else {
           setId(response.data._id);
