@@ -1,7 +1,7 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 
-const API_URL = "https://burgundy-web-app.herokuapp.com/api/service/";
+const API_URL = "https://burgundy-server-web-app.herokuapp.com/api/service/";
 
 class ServiceService {
   createService(service) {

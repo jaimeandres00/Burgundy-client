@@ -55,7 +55,7 @@ const ListServices = (props) => {
               <div className="card text-center">
                 <img
                   src={
-                    "https://burgundy-web-app.herokuapp.com/api/service/get/image/" +
+                    "https://burgundy-server-web-app.herokuapp.com/api/service/get/image/" +
                     service._id
                   }
                   className="card-img-top"

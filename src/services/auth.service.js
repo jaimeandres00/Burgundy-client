@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://burgundy-web-app.herokuapp.com/api/auth/";
+const API_URL = "https://burgundy-server-web-app.herokuapp.com/api/auth/";
 
 class AuthService {
   
