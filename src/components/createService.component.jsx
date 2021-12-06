@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { Navigate } from "react-router-dom";
+import React, { Fragment, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
@@ -51,140 +51,111 @@ const vprice = (value) => {
   }
 };
 
-class CreateService extends Component {
-  constructor(props) {
-    super(props);
+const vcategory = (value) => {
+  if (value === "Categoría del servicio") {
+    return (
+      <div className="alert alert-danger" role="alert">
+        Ingrese una categoría para el servicio valida.
+      </div>
+    );
+  }
+};
+const CreateService = (props) => {
+  const form = useRef();
+  const checkBtn = useRef();
+  const navigate = useNavigate();
 
-    this.handleCreateService = this.handleCreateService.bind(this);
-    this.retrieveCategories = this.retrieveCategories.bind(this);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
+  const [user, setUser] = useState("");
+  const [image, setImage] = useState(null);
 
-    this.onChangeTitle = this.onChangeTitle.bind(this);
-    this.onChangeDescription = this.onChangeDescription.bind(this);
-    this.onChangePrice = this.onChangePrice.bind(this);
-    this.onChangeCategory = this.onChangeCategory.bind(this);
-    this.onChangeImage = this.onChangeImage.bind(this);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isServiceProvider, setIsServiceProvider] = useState(false);
+  const [currentUser, setCurrentUser] = useState(undefined);
+
+  useEffect(() => {
     const user = AuthService.getCurrentUser();
 
-    if (!user || user.role === 0) {
-      this.state = {
-        redirect: true,
-      };
+    if (user) {
+      if (user.role !== 0) {
+        setUser(user.id);
+        setCurrentUser(user);
+        setIsAdmin(user.role === 2);
+        setIsServiceProvider(user.role === 1);
+        retrieveCategories();
+      } else {
+        navigate("/");
+      }
+
     } else {
-      this.state = {
-        service: {
-          title: "",
-          description: "",
-          price: 0,
-          category: "",
-          user: user.id,
-          image: null,
-        },
-        categories: [],
-        loading: false,
-        successful: false,
-        redirect: false,
-        message: "",
-      };
+      navigate("/login");
     }
-  }
+  }, []);
 
-  componentDidMount() {
-    this.retrieveCategories();
-  }
-
-  onChangeTitle(e) {
+  const onChangeTitle = (e) => {
     const title = e.target.value;
-    
-    this.setState((prevState) => ({
-      service: {
-        ...prevState.service,
-        title: title
-      }
-    }));
-  }
+    setTitle(title);
+  };
 
-  onChangeDescription(e) {
+  const onChangeDescription = (e) => {
     const description = e.target.value;
-    
-    this.setState((prevState) => ({
-      service: {
-        ...prevState.service,
-        description: description
-      }
-    }));
-  }
+    setDescription(description);
+  };
 
-  onChangePrice(e) {
+  const onChangePrice = (e) => {
     const price = e.target.value;
-    
-    this.setState((prevState) => ({
-      service: {
-        ...prevState.service,
-        price: price
-      }
-    }));
-  }
+    setPrice(price);
+  };
 
-  onChangeCategory(e) {
+  const onChangeCategory = (e) => {
     const category = e.target.value;
-    
-    this.setState((prevState) => ({
-      service: {
-        ...prevState.service,
-        category: category
-      }
-    }));
-  }
+    setCategory(category);
+  };
 
-  onChangeImage(e) {
+  const onChangeImage = (e) => {
     const image = e.target.files[0];
-    
-    this.setState((prevState) => ({
-      service: {
-        ...prevState.service,
-        image: image
-      }
-    }));
-  }
+    setImage(image);
+  };
 
-  retrieveCategories() {
+  const retrieveCategories = () => {
     CategoryService.getCategories()
       .then((response) => {
-        this.setState({
-          categories: response.data,
-        });
+        setCategories(response.data);
       })
       .catch((e) => {
         console.log(e);
       });
-  }
+  };
 
-  handleCreateService(e) {
+  const handleCreateService = (e) => {
     e.preventDefault();
 
-    this.setState({
-      message: "",
-      loading: true,
-    });
+    setMessage("");
+    setLoading(true);
 
-    this.form.validateAll();
+    form.current.validateAll();
 
-    if (this.checkBtn.context._errors.length === 0) {
+    if (checkBtn.current.context._errors.length === 0) {
       let service = new FormData();
 
-      service.append("title", this.state.service.title);
-      service.append("description", this.state.service.description);
-      service.append("price", this.state.service.price);
-      service.append("category", this.state.service.category);
-      service.append("user", this.state.service.user);
-      service.append("image", this.state.service.image);
+      service.append("title", title);
+      service.append("description", description);
+      service.append("price", price);
+      service.append("category", category);
+      service.append("user", user);
+      service.append("image", image);
 
       ServicesService.createService(service).then(
         () => {
-          this.setState({
-            successful: true,
-          });
+          navigate("/");
+          window.location.reload();
         },
         (error) => {
           const resMessage =
@@ -194,31 +165,17 @@ class CreateService extends Component {
             error.message ||
             error.toString();
 
-          this.setState({
-            loading: false,
-            message: resMessage,
-          });
+          setLoading(false);
+          setMessage(resMessage);
         }
       );
     } else {
-      this.setState({
-        loading: false,
-      });
+      setLoading(false);
     }
-  }
+  };
 
-  render() {
-    const { successful, redirect, service, categories } = this.state;
-
-    if (successful) {
-      return <Navigate to={{ pathname: "/" }} />;
-    }
-
-    if (redirect) {
-      return <Navigate to={{ pathname: "/login" }} />;
-    }
-
-    return (
+  return (
+    <Fragment>
       <div className="text-center row align-items-center justify-content-center mt-3 pt-3 no-row">
         <div>
           <h1 className="display-6 fw-bold">Crear tu servicio</h1>
@@ -226,20 +183,15 @@ class CreateService extends Component {
         <div className="mt-sm-5 mb-sm-5 container w-50 w-xs-100  rounded shadow">
           <div className="row bg-white align-items-stretch p-5">
             <div className="col-12">
-              <Form
-                onSubmit={this.handleCreateService}
-                ref={(c) => {
-                  this.form = c;
-                }}
-              >
+              <Form onSubmit={handleCreateService} ref={form}>
                 <div className="mb-3">
                   <Input
                     type="text"
                     className="form-control"
                     name="title"
                     placeholder="Nombre del servicio"
-                    value={service.title}
-                    onChange={this.onChangeTitle}
+                    value={title}
+                    onChange={onChangeTitle}
                     validations={[required, vtitle]}
                   />
                 </div>
@@ -250,8 +202,8 @@ class CreateService extends Component {
                     className="form-control"
                     name="description"
                     placeholder="Descripción del servicio"
-                    value={service.description}
-                    onChange={this.onChangeDescription}
+                    value={description}
+                    onChange={onChangeDescription}
                     rows="3"
                     validations={[required, vdescription]}
                   />
@@ -263,8 +215,8 @@ class CreateService extends Component {
                     className="form-control"
                     name="price"
                     placeholder="Precio del servicio"
-                    value={service.price}
-                    onChange={this.onChangePrice}
+                    value={price}
+                    onChange={onChangePrice}
                     validations={[required, vprice]}
                   />
                 </div>
@@ -273,8 +225,8 @@ class CreateService extends Component {
                   <Select
                     className="form-control"
                     name="category"
-                    onChange={this.onChangeCategory}
-                    validations={[required]}
+                    onChange={onChangeCategory}
+                    validations={[required, vcategory]}
                   >
                     <option selected>Categoría del servicio</option>
                     {categories.map((category) => (
@@ -291,7 +243,7 @@ class CreateService extends Component {
                     type="file"
                     className="form-control"
                     name="image"
-                    onChange={this.onChangeImage}
+                    onChange={onChangeImage}
                     validations={[required]}
                   />
                 </div>
@@ -300,36 +252,31 @@ class CreateService extends Component {
                   <button
                     type="submit"
                     className="btn btn-burgundy me-2"
-                    disabled={this.state.loading}
+                    disabled={loading}
                   >
-                    {this.state.loading && (
+                    {loading && (
                       <span className="spinner-border spinner-border-sm"></span>
                     )}
                     <span>Crear servicio</span>
                   </button>
                 </div>
 
-                {this.state.message && (
+                {message && (
                   <div className="form-group">
                     <div className="alert alert-danger" role="alert">
-                      {this.state.message}
+                      {message}
                     </div>
                   </div>
                 )}
 
-                <CheckButton
-                  style={{ display: "none" }}
-                  ref={(c) => {
-                    this.checkBtn = c;
-                  }}
-                />
+                <CheckButton style={{ display: "none" }} ref={checkBtn} />
               </Form>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
-}
+    </Fragment>
+  );
+};
 
 export default CreateService;

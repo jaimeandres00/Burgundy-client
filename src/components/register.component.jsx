@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { Navigate } from "react-router-dom";
+import React, { useState, useRef, Fragment } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
@@ -57,13 +57,21 @@ const vphone = (value) => {
   }
 };
 
-const vbirthdate = (value) => {};
-
-const email = (value) => {
+const vemail = (value) => {
   if (!isEmail(value)) {
     return (
       <div className="alert alert-danger" role="alert">
         Ingrese una dirección de correo electrónico valida.
+      </div>
+    );
+  }
+};
+
+const vgender = (value) => {
+  if (value === "Sexo") {
+    return (
+      <div className="alert alert-danger" role="alert">
+        Ingrese una género valido.
       </div>
     );
   }
@@ -79,138 +87,80 @@ const vpassword = (value) => {
   }
 };
 
-class Register extends Component {
-  constructor(props) {
-    super(props);
-    this.handleRegister = this.handleRegister.bind(this);
+const Register = (props) => {
+  const form = useRef();
+  const checkBtn = useRef();
+  const navigate = useNavigate();
+  const currentUser = AuthService.getCurrentUser();
 
-    this.onChangeName = this.onChangeName.bind(this);
-    this.onChangeLastName = this.onChangeLastName.bind(this);
-    this.onChangePhone = this.onChangePhone.bind(this);
-    this.onChangeBirthdate = this.onChangeBirthdate.bind(this);
-    this.onChangeGender = this.onChangeGender.bind(this);
-    this.onChangeEmail = this.onChangeEmail.bind(this);
-    this.onChangePassword = this.onChangePassword.bind(this);
+  const [name, setName] = useState("");
+  const [lastname, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  const [gender, setGender] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-    const user = AuthService.getCurrentUser();
-
-    if (user) {
-      this.state = {
-        successful: true,
-      };
-    } else {
-      this.state = {
-        user: {
-          name: "",
-          lastname: "",
-          phone: "",
-          birthdate: "",
-          gender: "",
-          email: "",
-          password: "",
-        },
-        loading: false,
-        message: "",
-        successful: false,
-      };
-    }
-  }
-
-  onChangeName(e) {
+  const onChangeName = (e) => {
     const name = e.target.value;
+    setName(name);
+  };
 
-    this.setState((prevState) => ({
-      user: {
-        ...prevState.user,
-        name: name,
-      },
-    }));
-  }
-
-  onChangeLastName(e) {
+  const onChangeLastName = (e) => {
     const lastname = e.target.value;
+    setLastName(lastname);
+  };
 
-    this.setState((prevState) => ({
-      user: {
-        ...prevState.user,
-        lastname: lastname,
-      },
-    }));
-  }
-
-  onChangePhone(e) {
+  const onChangePhone = (e) => {
     const phone = e.target.value;
+    setPhone(phone);
+  };
 
-    this.setState((prevState) => ({
-      user: {
-        ...prevState.user,
-        phone: phone,
-      },
-    }));
-  }
-
-  onChangeBirthdate(e) {
+  const onChangeBirthdate = (e) => {
     const birthdate = e.target.value;
+    setBirthdate(birthdate);
+  };
 
-    this.setState((prevState) => ({
-      user: {
-        ...prevState.user,
-        birthdate: birthdate,
-      },
-    }));
-  }
-
-  onChangeGender(e) {
+  const onChangeGender = (e) => {
     const gender = e.target.value;
+    setGender(gender);
+  };
 
-    this.setState((prevState) => ({
-      user: {
-        ...prevState.user,
-        gender: gender,
-      },
-    }));
-  }
-
-  onChangeEmail(e) {
+  const onChangeEmail = (e) => {
     const email = e.target.value;
+    setEmail(email);
+  };
 
-    this.setState((prevState) => ({
-      user: {
-        ...prevState.user,
-        email: email,
-      },
-    }));
-  }
-
-  onChangePassword(e) {
+  const onChangePassword = (e) => {
     const password = e.target.value;
+    setPassword(password);
+  };
 
-    this.setState((prevState) => ({
-      user: {
-        ...prevState.user,
-        password: password,
-      },
-    }));
-  }
-
-  handleRegister(e) {
+  const handleRegister = (e) => {
     e.preventDefault();
 
-    this.setState({
-      message: "",
-      loading: true,
-    });
+    setMessage("");
+    setLoading(true);
 
-    this.form.validateAll();
+    form.current.validateAll();
 
-    if (this.checkBtn.context._errors.length === 0) {
-      const user = this.state.user;
+    if (checkBtn.current.context._errors.length === 0) {
+      const user = {
+        name: name,
+        lastname: lastname,
+        phone: phone,
+        birthdate: birthdate,
+        gender: gender,
+        email: email,
+        password: password,
+      };
 
       AuthService.register(user).then(
         () => {
-          this.setState({
-            successful: true,
-          });
+          navigate("/");
+          window.location.reload();
         },
         (error) => {
           const resMessage =
@@ -220,27 +170,19 @@ class Register extends Component {
             error.message ||
             error.toString();
 
-          this.setState({
-            loading: false,
-            message: resMessage,
-          });
+          setLoading(false);
+          setMessage(resMessage);
         }
       );
     } else {
-      this.setState({
-        loading: false,
-      });
+      setLoading(false);
     }
-  }
+  };
 
-  render() {
-    const { successful, user } = this.state;
+  return (
+    <Fragment>
+      {currentUser && navigate("/")}
 
-    if (successful) {
-      return <Navigate to={{ pathname: "/" }} />;
-    }
-
-    return (
       <div className="text-center row align-items-center justify-content-center mt-3 pt-3 no-row">
         <div>
           <h1 className="display-6 fw-bold">Regístrate</h1>
@@ -249,12 +191,7 @@ class Register extends Component {
         <div className="mt-sm-5 mb-sm-5 container w-50 w-xs-100 rounded shadow">
           <div className="row bg-white align-items-stretch p-5">
             <div className="col-12">
-              <Form
-                onSubmit={this.handleRegister}
-                ref={(c) => {
-                  this.form = c;
-                }}
-              >
+              <Form onSubmit={handleRegister} ref={form}>
                 <div className="row mb-3">
                   <div className="col-md-6">
                     <Input
@@ -262,8 +199,8 @@ class Register extends Component {
                       className="form-control"
                       name="name"
                       placeholder="Nombre"
-                      value={user.name}
-                      onChange={this.onChangeName}
+                      value={name}
+                      onChange={onChangeName}
                       validations={[required, vname]}
                     />
                   </div>
@@ -274,8 +211,8 @@ class Register extends Component {
                       className="form-control"
                       name="lastname"
                       placeholder="Apellido"
-                      value={user.lastname}
-                      onChange={this.onChangeLastName}
+                      value={lastname}
+                      onChange={onChangeLastName}
                       validations={[required, vlastname]}
                     />
                   </div>
@@ -287,8 +224,8 @@ class Register extends Component {
                     className="form-control"
                     name="phone"
                     placeholder="Número de celular"
-                    value={user.phone}
-                    onChange={this.onChangePhone}
+                    value={phone}
+                    onChange={onChangePhone}
                     validations={[required, vphone]}
                   />
                 </div>
@@ -301,9 +238,9 @@ class Register extends Component {
                     type="date"
                     className="form-control"
                     name="birthdate"
-                    value={user.birthdate}
-                    onChange={this.onChangeBirthdate}
-                    validations={[required, vbirthdate]}
+                    value={birthdate}
+                    onChange={onChangeBirthdate}
+                    validations={[required]}
                   />
                 </div>
 
@@ -311,8 +248,8 @@ class Register extends Component {
                   <Select
                     className="form-control"
                     name="gender"
-                    onChange={this.onChangeGender}
-                    validations={[required]}
+                    onChange={onChangeGender}
+                    validations={[required, vgender]}
                   >
                     <option selected>Sexo</option>
                     <option value="male">Masculino</option>
@@ -327,9 +264,9 @@ class Register extends Component {
                     className="form-control"
                     name="email"
                     placeholder="Correo electrónico"
-                    value={user.email}
-                    onChange={this.onChangeEmail}
-                    validations={[required, email]}
+                    value={email}
+                    onChange={onChangeEmail}
+                    validations={[required, vemail]}
                   />
                 </div>
 
@@ -339,8 +276,8 @@ class Register extends Component {
                     className="form-control"
                     name="password"
                     placeholder="Contraseña"
-                    value={user.password}
-                    onChange={this.onChangePassword}
+                    value={password}
+                    onChange={onChangePassword}
                     validations={[required, vpassword]}
                   />
                 </div>
@@ -357,34 +294,29 @@ class Register extends Component {
                   <button
                     type="submit"
                     className="btn btn-burgundy"
-                    disabled={this.state.loading}
+                    disabled={loading}
                   >
-                    {this.state.loading && (
+                    {loading && (
                       <span className="spinner-border spinner-border-sm"></span>
                     )}
                     <span>Registrarse</span>
                   </button>
                 </div>
-                {this.state.message && (
+                {message && (
                   <div className="form-group">
                     <div className="alert alert-danger" role="alert">
-                      {this.state.message}
+                      {message}
                     </div>
                   </div>
                 )}
-                <CheckButton
-                  style={{ display: "none" }}
-                  ref={(c) => {
-                    this.checkBtn = c;
-                  }}
-                />
+                <CheckButton style={{ display: "none" }} ref={checkBtn} />
               </Form>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
-}
+    </Fragment>
+  );
+};
 
 export default Register;

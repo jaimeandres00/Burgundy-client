@@ -1,65 +1,57 @@
-import React, { Component } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
+
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.min.js";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import "./App.css";
 
+import AuthService from "./services/auth.service";
+
 import Navbar from "./components/navbar.component";
-import Footer from "./components/footer.component";
 import Slide from "./components/slide.component";
-import Services from "./components/services.component";
+import Footer from "./components/footer.component";
+import Register from "./components/register.component";
+import Login from "./components/login.component";
+import ListServices from "./components/services.component";
 import CreateServiceButton from "./components/createServiceButton.component";
 import CreateService from "./components/createService.component";
 import UpdateService from "./components/updateService.component";
 
-import Login from "./components/login.component";
-import Register from "./components/register.component";
+const App = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isServiceProvider, setIsServiceProvider] = useState(false);
+  const [currentUser, setCurrentUser] = useState(undefined);
 
-import AuthService from "./services/auth.service";
-
-class App extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      isServiceProvider: false,
-      isAdmin: false,
-      currentUser: undefined,
-    };
-  }
-
-  componentDidMount() {
+  useEffect(() => {
     const user = AuthService.getCurrentUser();
 
     if (user) {
-      this.setState({
-        currentUser: user,
-        isServiceProvider: user.role === 1,
-        isAdmin: user.role === 2,
-      });
+      setCurrentUser(user);
+      setIsServiceProvider(user.role === 1);
+      setIsAdmin(user.role === 2);
     }
-  }
+  }, []);
 
-  render() {
-    const { currentUser, isServiceProvider, isAdmin } = this.state;
+  return (
+    <Fragment>
+      <Navbar />
+      <Slide />
 
-    return (
-      <div>
-        <Navbar />
-        <Slide />
+      <CreateServiceButton />
 
-        {(isAdmin || isServiceProvider) && <CreateServiceButton />}
+      <Routes>
+        <Route path="/:search" element={<ListServices />} />
+        <Route path="/" element={<ListServices />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/create-service" element={<CreateService />} />
+        <Route path="/update-service/:id" element={<UpdateService />} />
+      </Routes>
 
-        <Routes>
-          <Route path="/" element={<Services />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/create-service" element={<CreateService />} />
-          <Route path="/update-service/:id" element={<UpdateService />} />
-        </Routes>
-
-        <Footer />
-      </div>
-    );
-  }
-}
+      <Footer />
+    </Fragment>
+  );
+};
 
 export default App;

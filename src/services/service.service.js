@@ -14,6 +14,10 @@ class ServiceService {
     return axios.get(API_URL + `get/${serviceId}`);
   }
 
+  getServiceImage(serviceId) {
+    return axios.get(API_URL + `get/image/${serviceId}`);
+  }  
+
   getServices(order, sortBy, limit) {
     var query = API_URL + "list";
 
@@ -70,8 +74,8 @@ class ServiceService {
     return axios.get(query);
   }
 
-  updateService(service) {
-    return axios.put(API_URL + `update/${service.id}`, service, {
+  updateService(id, service) {
+    return axios.put(API_URL + `update/${id}`, service, {
       headers: authHeader(),
     });
   }

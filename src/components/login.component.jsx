@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { Link, Navigate } from "react-router-dom";
+import React, { useState, useRef, Fragment } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
@@ -18,7 +18,7 @@ const required = (value) => {
   }
 };
 
-const email = (value) => {
+const vemail = (value) => {
   if (!isEmail(value)) {
     return (
       <div className="alert alert-danger" role="alert">
@@ -28,59 +28,40 @@ const email = (value) => {
   }
 };
 
-class Login extends Component {
-  constructor(props) {
-    super(props);
-    this.handleLogin = this.handleLogin.bind(this);
+const Login = (props) => {
+  const form = useRef();
+  const checkBtn = useRef();
+  const navigate = useNavigate();
+  const currentUser = AuthService.getCurrentUser();
 
-    this.onChangeEmail = this.onChangeEmail.bind(this);
-    this.onChangePassword = this.onChangePassword.bind(this);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-    const user = AuthService.getCurrentUser();
+  const onChangeEmail = (e) => {
+    const email = e.target.value;
+    setEmail(email);
+  };
 
-    if (user) {
-      this.state = {
-        successful: true,
-      };
-    } else {
-      this.state = {
-        email: "",
-        password: "",
-        loading: false,
-        message: "",
-        successful: false,
-      };
-    }
-  }
+  const onChangePassword = (e) => {
+    const password = e.target.value;
+    setPassword(password);
+  };
 
-  onChangeEmail(e) {
-    this.setState({
-      email: e.target.value,
-    });
-  }
-
-  onChangePassword(e) {
-    this.setState({
-      password: e.target.value,
-    });
-  }
-
-  handleLogin(e) {
+  const handleLogin = (e) => {
     e.preventDefault();
 
-    this.setState({
-      message: "",
-      loading: true,
-    });
+    setMessage("");
+    setLoading(true);
 
-    this.form.validateAll();
+    form.current.validateAll();
 
-    if (this.checkBtn.context._errors.length === 0) {
-      AuthService.login(this.state.email, this.state.password).then(
+    if (checkBtn.current.context._errors.length === 0) {
+      AuthService.login(email, password).then(
         () => {
-          this.setState({
-            successful: true,
-          });
+          navigate("/");
+          window.location.reload();
         },
         (error) => {
           const resMessage =
@@ -90,49 +71,37 @@ class Login extends Component {
             error.message ||
             error.toString();
 
-          this.setState({
-            loading: false,
-            message: resMessage,
-          });
+          setLoading(false);
+          setMessage(resMessage);
         }
       );
     } else {
-      this.setState({
-        loading: false,
-      });
+      setLoading(false);
     }
-  }
+  };
 
-  render() {
-    const { successful } = this.state;
+  return (
+    <Fragment>
+      {currentUser && navigate("/")}
 
-    if (successful) {
-      return <Navigate to={{ pathname: "/" }} />;
-    }
-
-    return (
       <div className="text-center row align-items-center mt-5 no-row">
         <div>
           <h1 className="display-6 fw-bold">Inicio de sesión</h1>
         </div>
-        <div className="container w-25 w-xs-100 bg-white rounded shadow p-5 rounded mt-sm-5 mb-sm-5 ">
+
+        <div className="container w-25 w-xs-100 bg-white rounded shadow p-5 rounded mt-sm-5 mb-sm-5">
           <div className="row">
             <div className="col">
-              <Form
-                onSubmit={this.handleLogin}
-                ref={(c) => {
-                  this.form = c;
-                }}
-              >
+              <Form onSubmit={handleLogin} ref={form}>
                 <div className="mb-3">
                   <Input
                     type="text"
                     className="form-control"
                     name="email"
                     placeholder="Correo electrónico"
-                    value={this.state.email}
-                    onChange={this.onChangeEmail}
-                    validations={[required, email]}
+                    value={email}
+                    onChange={onChangeEmail}
+                    validations={[required, vemail]}
                   />
                 </div>
 
@@ -142,8 +111,8 @@ class Login extends Component {
                     className="form-control"
                     name="password"
                     placeholder="Contraseña"
-                    value={this.state.password}
-                    onChange={this.onChangePassword}
+                    value={password}
+                    onChange={onChangePassword}
                     validations={[required]}
                   />
                 </div>
@@ -152,29 +121,23 @@ class Login extends Component {
                   <button
                     type="submit"
                     className="btn btn-burgundy"
-                    disabled={this.state.loading}
+                    disabled={loading}
                   >
-                    {this.state.loading && (
+                    {loading && (
                       <span className="spinner-border spinner-border-sm"></span>
                     )}
                     <span>Iniciar sesión</span>
                   </button>
                 </div>
-
-                {this.state.message && (
+                {message && (
                   <div className="form-group">
                     <div className="alert alert-danger" role="alert">
-                      {this.state.message}
+                      {message}
                     </div>
                   </div>
                 )}
+                <CheckButton style={{ display: "none" }} ref={checkBtn} />
 
-                <CheckButton
-                  style={{ display: "none" }}
-                  ref={(c) => {
-                    this.checkBtn = c;
-                  }}
-                />
                 <div className="mt-3">
                   <p>
                     No tienes una cuenta aún,{" "}
@@ -188,8 +151,8 @@ class Login extends Component {
           </div>
         </div>
       </div>
-    );
-  }
-}
+    </Fragment>
+  );
+};
 
 export default Login;
